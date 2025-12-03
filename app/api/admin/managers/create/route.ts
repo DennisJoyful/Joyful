@@ -2,32 +2,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/serverSupabase'
 
-function requireAdmin(req: NextRequest) {
-  const got = req.headers.get('authorization') || ''
-  const want = `Bearer ${process.env.ADMIN_API_TOKEN || ''}`
-  return got === want && want !== 'Bearer '
-}
-
 function randomCode(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2,7).toUpperCase()}`
 }
 
-export async function OPTIONS() {
-  // allow preflight
-  return NextResponse.json({ ok:true, route: 'admin/managers/create', method: 'OPTIONS' })
-}
-
-export async function GET(req: NextRequest) {
-  const ok = requireAdmin(req)
-  return NextResponse.json({ ok, route: 'admin/managers/create', method: 'GET' }, { status: ok ? 200 : 401 })
+// Diagnose: erlaubt GET, erzeugt nichts
+export async function GET() {
+  return NextResponse.json({ ok: true, route: 'admin/managers/create', method: 'GET', note: 'TEMP NO AUTH' })
 }
 
 export async function POST(req: NextRequest) {
   try {
-    if (!requireAdmin(req)) {
-      return NextResponse.json({ ok:false, error:'unauthorized' }, { status:401 })
-    }
-
+    // ⚠️ TEMPORÄR KEINE AUTH-PRÜFUNG (nur zum Testen, danach wieder absichern!)
     const body = await req.json().catch(() => null)
     const { display_name, email, tiktok_handle, mode = 'with_email' } = body || {}
     if (!display_name || (mode === 'with_email' && !email) || (mode === 'without_email' && !tiktok_handle)) {

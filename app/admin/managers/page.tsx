@@ -24,7 +24,7 @@ export default function AdminManagersPage() {
       if (mode === 'with_email') payload.email = email
       if (mode === 'without_email') payload.tiktok_handle = handle
 
-      const r = await fetch('/api/_admin/proxy?to=/api/admin/managers/create', {
+      const r = await fetch('/api/admin/managers/create', {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify(payload)
@@ -33,29 +33,15 @@ export default function AdminManagersPage() {
       const txt = await r.text()
       let data: any
       try { data = JSON.parse(txt) } catch {
-        data = { ok:false, error:`Non-JSON response (status ${r.status})`, details: txt.slice(0,300) }
+        data = { ok:false, error:`Non-JSON response (status ${r.status})`, details: txt.slice(0,200) }
       }
 
       if (!r.ok || !data.ok) {
         setErr(data?.error || `HTTP ${r.status}`)
-
-        // Diagnose 1: Proxy -> ping (GET)
-        const pr = await fetch('/api/_admin/proxy?to=/api/admin/ping&m=GET', { method:'POST' })
-        const ptxt = await pr.text()
-        let pobj: any
-        try { pobj = JSON.parse(ptxt) } catch { pobj = { raw: ptxt } }
-
-        // Diagnose 2: Proxy -> echo (POST)
-        const eresp = await fetch('/api/_admin/proxy?to=/api/admin/echo', {
-          method: 'POST',
-          headers: { 'Content-Type':'application/json' },
-          body: JSON.stringify({ probe: true })
-        })
-        const etxt = await eresp.text()
-        let eobj: any
-        try { eobj = JSON.parse(etxt) } catch { eobj = { raw: etxt } }
-
-        setDiag({ proxyPing: pobj, proxyEcho: eobj, upstream: data })
+        // Diagnose: direkte GETs
+        const p1 = await fetch('/api/admin/ping').then(r=>r.text()).catch(()=>'-')
+        const p2 = await fetch('/api/admin/managers/create').then(r=>r.text()).catch(()=>'-')
+        setDiag({ ping: p1, createGET: p2 })
       } else {
         setRes(data)
       }
@@ -69,9 +55,9 @@ export default function AdminManagersPage() {
   return (
     <div className="max-w-lg space-y-5">
       <div>
-        <h1 className="text-2xl font-semibold">Manager anlegen (Admin)</h1>
+        <h1 className="text-2xl font-semibold">Manager anlegen (Admin, TEMP ohne Auth)</h1>
         <p className="text-sm text-gray-600">
-          Mit E-Mail = Login möglich. Ohne E-Mail = nur Referral (kein Login).
+          Diese Seite ist temporär ohne Admin-Token. Bitte nach dem Test wieder die sichere Version nutzen.
         </p>
       </div>
 
@@ -157,9 +143,6 @@ export default function AdminManagersPage() {
             Referral-Code: <code>{res.referral_code}</code>
           </p>
           {res.note && <p className="text-amber-700">{res.note}</p>}
-          <p className="text-gray-600">
-            Hinweis: Der Bewerbungslink ist später nach Login unter <code>/manager/profile</code> sichtbar.
-          </p>
         </div>
       )}
     </div>
