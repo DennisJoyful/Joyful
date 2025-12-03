@@ -17,12 +17,12 @@ export default function AdminManagersPage() {
     if (mode === 'with_email') payload.email = email
     if (mode === 'without_email') payload.tiktok_handle = handle
 
-    const r = await fetch('/api/admin/managers/create', {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_ADMIN_TOKEN || ''}` // optional: öffentliches Echo, sonst per Route Action setzen
-      },
+const r = await fetch('/api/_admin/proxy?to=/api/admin/managers/create', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' }, // KEIN Authorization hier!
+  body: JSON.stringify(payload),
+})
+
       body: JSON.stringify(payload)
     })
     const data = await r.json()
