@@ -1,7 +1,5 @@
-// components/FiltersBar.tsx
 'use client';
 import React from 'react';
-
 export type Filters = { status?: string; source?: string; search?: string; };
 export default function FiltersBar({ filters, onChange, sources = [] } : {
   filters: Filters; onChange: (f: Filters) => void; sources?: string[];

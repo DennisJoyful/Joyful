@@ -1,14 +1,6 @@
-// app/manager/werber/page.tsx
-import React from 'react';
-
-async function getData() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/mock/werber`, { cache: 'no-store' });
-  if (!res.ok) return [];
-  return (await res.json())?.rows || [];
-}
-
 export default async function WerberOverview() {
-  const rows = await getData();
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/mock/werber`, { cache: 'no-store' });
+  const rows = res.ok ? (await res.json()).rows : [];
   return (
     <main className="p-6 space-y-4">
       <h1 className="text-2xl font-semibold">Werber-Übersicht</h1>

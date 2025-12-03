@@ -1,4 +1,3 @@
-// components/LeadTable.tsx
 'use client';
 import React, { useMemo, useState } from 'react';
 import StatusBadge from '@/components/StatusBadge';
@@ -6,7 +5,7 @@ import LiveDot from '@/components/LiveDot';
 import FiltersBar, { Filters } from '@/components/FiltersBar';
 import { withAutoFollowUp, type Lead } from '@/lib/followup';
 
-export default function LeadTable({ rows }: { rows: Lead[] }) {
+export default function LeadTable({ rows, onAction } : { rows: Lead[]; onAction?: (id:string, data:Partial<Lead>)=>void }) {
   const [filters, setFilters] = useState<Filters>({});
   const sources = useMemo(() => Array.from(new Set(rows.map(r => r.source).filter(Boolean))) as string[], [rows]);
 
@@ -31,6 +30,7 @@ export default function LeadTable({ rows }: { rows: Lead[] }) {
               <th className="px-3 py-2">Live</th>
               <th className="px-3 py-2">Kontakt</th>
               <th className="px-3 py-2">Follow-up</th>
+              <th className="px-3 py-2 w-40">Aktion</th>
             </tr>
           </thead>
           <tbody>
@@ -41,10 +41,24 @@ export default function LeadTable({ rows }: { rows: Lead[] }) {
                 <td className="px-3 py-2"><LiveDot live={!!r.live_status} /></td>
                 <td className="px-3 py-2">{r.contact_date ?? '—'}</td>
                 <td className="px-3 py-2">{r.follow_up_date ?? '—'}</td>
+                <td className="px-3 py-2">
+                  <button
+                    onClick={() => onAction?.(r.id, { status: 'eingeladen' as any, contact_date: new Date().toISOString().slice(0,10) })}
+                    className="px-2 py-1 rounded border text-xs"
+                  >
+                    eingeladen
+                  </button>
+                  <button
+                    onClick={() => onAction?.(r.id, { status: 'keine reaktion' as any })}
+                    className="ml-2 px-2 py-1 rounded border text-xs"
+                  >
+                    keine reaktion
+                  </button>
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
-              <tr><td className="px-3 py-8 text-center text-gray-500" colSpan={5}>Keine Leads gefunden</td></tr>
+              <tr><td className="px-3 py-8 text-center text-gray-500" colSpan={6}>Keine Leads gefunden</td></tr>
             )}
           </tbody>
         </table>
