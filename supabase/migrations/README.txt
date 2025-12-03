@@ -1,0 +1,1 @@
+Run the SQL in Supabase SQL editor.
