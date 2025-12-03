@@ -1,11 +1,15 @@
-'use client';
-import useSWR from 'swr';
 import StatusWorkflow from '@/components/StatusWorkflow';
-const fetcher = (url:string)=>fetch(url).then(r=>r.json());
 
-export default function LeadsPro(){
-  const { data, mutate } = useSWR('/api/v1/leads', fetcher);
-  const rows = data?.rows||[];
+async function getRows(){
+  const base = process.env.NEXT_PUBLIC_BASE_URL || '';
+  const res = await fetch(`${base}/api/v1/leads`, { cache: 'no-store' });
+  if(!res.ok) return [];
+  const json = await res.json();
+  return json?.rows || [];
+}
+
+export default async function LeadsPro(){
+  const rows = await getRows();
   return (
     <main className="p-6 space-y-4">
       <h1 className="text-2xl font-semibold">Leads – Pro</h1>
@@ -34,6 +38,7 @@ export default function LeadsPro(){
           </tbody>
         </table>
       </div>
+      <p className="text-xs text-gray-400">Hinweis: Diese Ansicht lädt ohne SWR. Nach Status-Änderungen bitte Seite neu laden.</p>
     </main>
   );
 }
