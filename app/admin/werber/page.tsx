@@ -11,7 +11,6 @@ async function getData() {
   }));
   return rows;
 }
-
 export default async function AdminWerber() {
   const rows = await getData();
   return (

@@ -1,11 +1,10 @@
-async function getMetrics() {
+async function getData() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/admin/metrics`, { cache: 'no-store' });
   if (!res.ok) return { byStatus: {}, byManager: {} };
   return res.json();
 }
-
 export default async function AdminOverview() {
-  const { byStatus, byManager } = await getMetrics();
+  const { byStatus, byManager } = await getData();
   const s = Object.entries(byStatus);
   const m = Object.entries(byManager);
   return (
@@ -14,7 +13,7 @@ export default async function AdminOverview() {
       <section>
         <h2 className="font-semibold mb-2">Leads nach Status</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {s.length === 0 && <div className="text-gray-500">Keine Daten</div>}
+          {s.length===0 && <div className="text-gray-500">Keine Daten</div>}
           {s.map(([k,v]) => (
             <div key={k} className="rounded-lg ring-1 ring-gray-200 p-3">
               <div className="text-sm text-gray-500">{k}</div>
@@ -23,11 +22,10 @@ export default async function AdminOverview() {
           ))}
         </div>
       </section>
-
       <section>
         <h2 className="font-semibold mb-2">Leads pro Manager</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {m.length === 0 && <div className="text-gray-500">Keine Daten</div>}
+          {m.length===0 && <div className="text-gray-500">Keine Daten</div>}
           {m.map(([k,v]) => (
             <div key={k} className="rounded-lg ring-1 ring-gray-200 p-3">
               <div className="text-sm text-gray-500">Manager</div>
