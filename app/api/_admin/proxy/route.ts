@@ -5,45 +5,23 @@ export async function POST(req: NextRequest) {
   try {
     const u = new URL(req.url)
     const target = u.searchParams.get('to')
-    const overrideMethod = (u.searchParams.get('m') || '').toUpperCase()
-    if (!target) {
-      return NextResponse.json({ ok:false, error:'missing "to" param' }, { status:400 })
-    }
-
-    const bodyText = await req.text()
-    const method = overrideMethod || req.method || 'POST'
-
+    if (!target) return NextResponse.json({ ok:false, error:'missing "to"' }, { status:400 })
+    const body = await req.text()
     const upstream = await fetch(new URL(target, u.origin).toString(), {
-      method,
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.ADMIN_API_TOKEN || ''}`,
         'Content-Type': req.headers.get('content-type') || 'application/json',
       },
-      body: method === 'GET' || method === 'HEAD' ? undefined : bodyText,
+      body,
     })
-
-    const txt = await upstream.text()
-    let data: any
-    try { data = JSON.parse(txt) } catch { data = { passthrough: txt } }
-
+    const text = await upstream.text()
+    let data: any; try { data = JSON.parse(text) } catch { data = { passthrough: text } }
     if (!upstream.ok) {
-      return NextResponse.json({
-        ok: false,
-        status: upstream.status,
-        error: data?.error || 'upstream error',
-        details: data?.passthrough ? String(data.passthrough).slice(0,300) : undefined,
-        methodUsed: method,
-        target
-      }, { status: upstream.status })
+      return NextResponse.json({ ok:false, status: upstream.status, error: data?.error || 'upstream error', details: data?.passthrough || '' }, { status: upstream.status })
     }
-
-    if (typeof data === 'object' && data !== null) {
-      if (data.ok === undefined) data.ok = true
-      return NextResponse.json({ ...data, methodUsed: method, target }, { status: upstream.status })
-    }
-    return NextResponse.json({ ok:true, data, methodUsed: method, target }, { status: upstream.status })
-
-  } catch (err: any) {
-    return NextResponse.json({ ok:false, error: err?.message || 'proxy failure' }, { status:500 })
+    return NextResponse.json(typeof data==='object' ? { ok:true, ...data } : { ok:true, data })
+  } catch (e:any) {
+    return NextResponse.json({ ok:false, error: e?.message || 'proxy failure' }, { status:500 })
   }
 }
