@@ -2,8 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/serverSupabase'
 
-type MapDef = { handle?: string; creator_id?: string; days?: string; hours?: string; diamonds?: string; join_date?: string; manager_id?: string; public_code?: string; rookie?: string }
-
 export async function POST(req: NextRequest){
   const body = await req.json().catch(()=>null)
   const { token, month, sheet, map } = body || {}
@@ -13,14 +11,7 @@ export async function POST(req: NextRequest){
 
   const raw = JSON.parse(Buffer.from(token, 'base64').toString('utf8'))
   const b64 = raw.b64 as string
-
-  let XLSX: any
-  try {
-    XLSX = (await import('xlsx')).default
-  } catch {
-    return NextResponse.json({ ok:false, error:'xlsx-Paket fehlt. Bitte `npm i xlsx` installieren.' }, { status:500 })
-  }
-
+  const { default: XLSX } = await import('xlsx')
   const wb = XLSX.read(Buffer.from(b64, 'base64'), { type: 'buffer' })
   const ws = wb.Sheets[sheet || wb.SheetNames[0]]
   const rows = XLSX.utils.sheet_to_json(ws) as any[]

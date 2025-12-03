@@ -7,13 +7,7 @@ export async function POST(req: NextRequest){
     const b64 = body?.b64 as string
     if (!b64) return NextResponse.json({ ok:false, error:'missing b64' }, { status:400 })
 
-    let XLSX: any
-    try {
-      XLSX = (await import('xlsx')).default
-    } catch {
-      return NextResponse.json({ ok:false, error:'xlsx-Paket fehlt. Bitte `npm i xlsx` installieren.' }, { status:500 })
-    }
-
+    const { default: XLSX } = await import('xlsx')
     const buf = Buffer.from(b64, 'base64')
     const wb = XLSX.read(buf, { type: 'buffer' })
     const sheets = wb.SheetNames
@@ -21,7 +15,6 @@ export async function POST(req: NextRequest){
     const json = XLSX.utils.sheet_to_json(ws, { header: 1 }) as any[][]
     const headers = (json[0]||[]).map((h:any)=> String(h))
     const token = Buffer.from(JSON.stringify({ b64, sheets })).toString('base64')
-
     return NextResponse.json({ ok:true, headers, sheets, token })
   } catch (e:any) {
     return NextResponse.json({ ok:false, error: e?.message || 'xlsx parse failed' }, { status:500 })

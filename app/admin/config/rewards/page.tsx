@@ -11,7 +11,7 @@ export default function RewardsConfigPage(){
   async function load(){
     const r = await fetch('/api/_admin/proxy?to=/api/admin/config/rewards/get', { method:'POST' })
     const j = await r.json().catch(()=>({ok:false, error:'no json'}))
-    if (j.ok) setRules(j.items||[]); else setMsg(j.error||'Fehler')
+    if (j.ok) setRules(j.items||[])
   }
 
   async function save(){
