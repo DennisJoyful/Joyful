@@ -18,7 +18,6 @@ export async function POST(req: NextRequest){
 
   const { data: rules } = await supa.from('reward_rules').select('key, points')
   const map: Record<string, number> = {}; for (const r of (rules||[])) map[r.key]=r.points
-
   const R = {
     FFM: map['first_full_month_active'] ?? 500,
     THREE: map['three_consecutive_months_active'] ?? 100,
