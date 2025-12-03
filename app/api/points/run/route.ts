@@ -16,20 +16,30 @@ export async function POST(req: NextRequest){
   if (!month) return NextResponse.json({ ok:false, error:'missing month YYYY-MM' }, { status:400 })
   const supa = getServiceClient()
 
+  const { data: rules } = await supa.from('reward_rules').select('key, points')
+  const map: Record<string, number> = {}; for (const r of (rules||[])) map[r.key]=r.points
+
+  const R = {
+    FFM: map['first_full_month_active'] ?? 500,
+    THREE: map['three_consecutive_months_active'] ?? 100,
+    D15: map['diamonds_15k'] ?? 150,
+    D50: map['diamonds_50k'] ?? 300,
+    ROOKIE: map['rookie_150k'] ?? 3500,
+    RB5: map['recruiter_bonus_per_5_actives'] ?? 500
+  }
+
   const { data: stats } = await supa.from('monthly_stats').select('*').eq('month', month)
   const { data: streamers } = await supa.from('streamers').select('creator_id, manager_id, recruiter_id, join_month, rookie')
-  const map = new Map<string, any>(); for (const s of (streamers||[])) map.set(s.creator_id, s)
+  const mapS = new Map<string, any>(); for (const s of (streamers||[])) mapS.set(s.creator_id, s)
 
   const ledger: any[] = []
 
   for (const row of (stats||[])){
-    const s = map.get(row.creator_id); if (!s) continue
+    const s = mapS.get(row.creator_id); if (!s) continue
     const firstFull = s.join_month
-    // Aktiv im ersten vollen Monat
     if (firstFull && month === firstFull && isActive(row)){
-      ledger.push({ points: 500, reason: 'Aktiv 7/15 im ersten vollen Monat', creator_id: row.creator_id })
+      ledger.push({ points: R.FFM, reason: 'Aktiv 7/15 im ersten vollen Monat', creator_id: row.creator_id })
     }
-    // 3 Monate 7/15 ab erstem vollen Monat
     if (firstFull){
       const seq = [0,1,2].map(d=>ymAdd(firstFull, d))
       if (seq[2] === month){
@@ -37,34 +47,30 @@ export async function POST(req: NextRequest){
           const { data } = await supa.from('monthly_stats').select('*').eq('month', mo).eq('creator_id', row.creator_id).maybeSingle()
           return isActive(data||{})
         }))
-        if (checks.every(Boolean)) ledger.push({ points: 100, reason: '3 Folgemonate 7/15', creator_id: row.creator_id })
+        if (checks.every(Boolean)) ledger.push({ points: R.THREE, reason: '3 Folgemonate 7/15', creator_id: row.creator_id })
       }
     }
-    // Diamanten innerhalb der ersten 3 vollen Monate
     if (s.join_month){
       const seq = [0,1,2].map(d=>ymAdd(s.join_month, d))
-      const idx = seq.indexOf(month)
-      if (idx !== -1){
+      if (seq.includes(month)){
         const dms = row.diamonds||0
-        if (dms >= 50000) ledger.push({ points: 300, reason: '50k Diamanten innerhalb 3 Monate', creator_id: row.creator_id })
-        else if (dms >= 15000) ledger.push({ points: 150, reason: '15k Diamanten innerhalb 3 Monate', creator_id: row.creator_id })
+        if (dms >= 50000) ledger.push({ points: R.D50, reason: '50k Diamanten innerhalb 3 Monate', creator_id: row.creator_id })
+        else if (dms >= 15000) ledger.push({ points: R.D15, reason: '15k Diamanten innerhalb 3 Monate', creator_id: row.creator_id })
       }
     }
-    // Rookie 150k im Monat
     if (s.rookie && (row.diamonds||0) >= 150000){
-      ledger.push({ points: 3500, reason: 'Rookie: 150k Diamanten in einem Monat', creator_id: row.creator_id })
+      ledger.push({ points: R.ROOKIE, reason: 'Rookie: 150k Diamanten in einem Monat', creator_id: row.creator_id })
     }
   }
 
-  // Werber-Bonus je 5 aktive im Monat
   const activeCreators = (stats||[]).filter(isActive).map(r=>r.creator_id)
   const byRec: Record<string, number> = {}
   for (const cid of activeCreators){
-    const s = map.get(cid); const rid = s?.recruiter_id; if (rid) byRec[rid] = (byRec[rid]||0)+1
+    const s = mapS.get(cid); const rid = s?.recruiter_id; if (rid) byRec[rid] = (byRec[rid]||0)+1
   }
   for (const rid of Object.keys(byRec)){
     const units = Math.floor(byRec[rid] / 5)
-    if (units>0) ledger.push({ points: units*500, reason: `Werber-Bonus: ${byRec[rid]} aktive (7/15)`, recruiter_id: rid })
+    if (units>0) ledger.push({ points: units*R.RB5, reason: `Werber-Bonus: ${byRec[rid]} aktive (7/15)`, recruiter_id: rid })
   }
 
   if (mode === 'dry') return NextResponse.json({ ok:true, month, preview: ledger })
