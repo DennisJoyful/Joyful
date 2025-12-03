@@ -1,0 +1,3 @@
+diff a/components/StatusBadge.tsx b/components/StatusBadge.tsx	(rejected hunks)
+@@ -0,0 +30 @@
++import React from 'react';

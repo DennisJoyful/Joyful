@@ -1,0 +1,3 @@
+diff a/next.config.mjs b/next.config.mjs	(rejected hunks)
+@@ -0,0 +10 @@
++import path from 'path';

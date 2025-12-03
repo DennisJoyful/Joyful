@@ -1,10 +1,13 @@
-<<<<<<< ours
-
-export function LiveDot({ live }: { live: 'not_checked'|'onair'|'offline' }) {
-  const color = live === 'onair' ? 'bg-green-500' : live === 'offline' ? 'bg-gray-400' : 'bg-slate-300'
-  const label = live === 'onair' ? 'ON AIR' : live === 'offline' ? 'offline' : 'nicht geprüft'
-  return <span className="inline-flex items-center gap-1 text-xs"><span className={`inline-block h-2.5 w-2.5 rounded-full ${color}`} />{label}</span>
-}
-=======
 import React from 'react';
->>>>>>> theirs
+
+export default function LiveDot({ isLive = false, className = '' }: { isLive?: boolean; className?: string }) {
+  const color = isLive ? 'bg-red-500' : 'bg-gray-300';
+  const ring = isLive ? 'ring-red-300' : 'ring-gray-200';
+  const pulse = isLive ? 'animate-pulse' : '';
+  return (
+    <span
+      className={['inline-block h-2.5 w-2.5 rounded-full', color, ring, 'ring-2', pulse, className].join(' ')}
+      title={isLive ? 'Live' : 'Offline'}
+    />
+  );
+}

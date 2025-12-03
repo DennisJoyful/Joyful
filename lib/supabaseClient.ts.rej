@@ -1,0 +1,3 @@
+diff a/lib/supabaseClient.ts b/lib/supabaseClient.ts	(rejected hunks)
+@@ -0,0 +11 @@
++import { createClient } from '@supabase/supabase-js';

@@ -1,0 +1,3 @@
+diff a/components/LiveDot.tsx b/components/LiveDot.tsx	(rejected hunks)
+@@ -0,0 +13 @@
++import React from 'react';
