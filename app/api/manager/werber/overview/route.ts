@@ -19,7 +19,6 @@ export async function POST(req: NextRequest){
     for (const row of (sums||[])) pointsBy[row.recruiter_id] = row.total_points || 0
   }
 
-  // hole referral_codes pro recruiter
   const { data: refs } = await supa.from('referral_codes').select('code, recruiter_id').in('recruiter_id', ids)
   const refBy: Record<string, string> = {}
   for (const r of (refs||[])) if (r.recruiter_id) refBy[r.recruiter_id] = r.code

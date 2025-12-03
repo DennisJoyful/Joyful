@@ -14,7 +14,7 @@ export default function ManagerWerberPage(){
     setLoading(true); setErr('')
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setErr('Nicht eingeloggt'); setLoading(false); return }
-    const r = await fetch('/api/manager/werber/overview', {
+    const r = await fetch('/api/_admin/proxy?to=/api/manager/werber/overview', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ manager_id: user.id })
