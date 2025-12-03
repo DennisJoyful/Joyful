@@ -1,60 +1,43 @@
+// app/manager/werber/page.tsx
+import React from 'react';
 
-'use client'
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+async function getData() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/mock/werber`, { cache: 'no-store' });
+  if (!res.ok) return [];
+  return (await res.json())?.rows || [];
+}
 
-type Row = { recruiter_id: string, display_name: string, tiktok_handle: string, referral_code: string|null, public_code: string|null, points_total: number }
-
-export default function ManagerWerberPage(){
-  const [rows, setRows] = useState<Row[]>([])
-  const [loading, setLoading] = useState(true)
-  const [err, setErr] = useState<string>('')
-
-  useEffect(()=>{ (async()=>{
-    setLoading(true); setErr('')
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setErr('Nicht eingeloggt'); setLoading(false); return }
-    const r = await fetch('/api/_admin/proxy?to=/api/manager/werber/overview', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ manager_id: user.id })
-    })
-    const data = await r.json().catch(()=>({ok:false,error:'keine JSON'}))
-    if (!data.ok) setErr(data.error||'Fehler'); else setRows(data.items||[])
-    setLoading(false)
-  })() }, [])
-
+export default async function WerberOverview() {
+  const rows = await getData();
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Meine Werber</h1>
-      {loading && <p>Lade…</p>}
-      {err && <p className="text-red-600">{err}</p>}
-      {!loading && !err && (
-        <div className="border rounded overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr className="text-left">
-                <th className="py-2 px-2">Werber</th>
-                <th className="px-2">Handle</th>
-                <th className="px-2">Punkte</th>
-                <th className="px-2">Ref-Link</th>
-                <th className="px-2">Public</th>
+    <main className="p-6 space-y-4">
+      <h1 className="text-2xl font-semibold">Werber-Übersicht</h1>
+      <p className="text-gray-600 text-sm">Punktestand, Ref-Link und Geworbene je Werber (Demo-Daten). Später durch Supabase ersetzen.</p>
+      <div className="overflow-x-auto rounded-xl ring-1 ring-gray-200">
+        <table className="min-w-full text-sm">
+          <thead className="bg-gray-50 text-left">
+            <tr>
+              <th className="px-3 py-2">Werber</th>
+              <th className="px-3 py-2">Punkte</th>
+              <th className="px-3 py-2">Ref-Link</th>
+              <th className="px-3 py-2">Geworbene</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r: any) => (
+              <tr key={r.id} className="border-t">
+                <td className="px-3 py-2 font-medium">{r.name}</td>
+                <td className="px-3 py-2">{r.points}</td>
+                <td className="px-3 py-2"><a className="underline" href={r.ref}>Link</a></td>
+                <td className="px-3 py-2">{r.count}</td>
               </tr>
-            </thead>
-            <tbody>
-              {rows.map((r,i)=> (
-                <tr key={i} className="border-t">
-                  <td className="py-2 px-2">{r.display_name}</td>
-                  <td className="px-2">@{r.tiktok_handle}</td>
-                  <td className="px-2 font-semibold">{r.points_total}</td>
-                  <td className="px-2">{r.referral_code ? <code>/sws/apply/{r.referral_code}</code> : '—'}</td>
-                  <td className="px-2">{r.public_code ? <code>/werber/{r.public_code}</code> : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  )
+            ))}
+            {rows.length === 0 && (
+              <tr><td className="px-3 py-8 text-center text-gray-500" colSpan={4}>Keine Werber gefunden</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  );
 }
