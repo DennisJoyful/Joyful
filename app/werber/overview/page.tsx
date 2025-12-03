@@ -10,8 +10,11 @@ async function getData(id:string){
   return { total, ledger: ledger.rows||[] };
 }
 
-export default async function WerberOverview({ searchParams }:{ searchParams: { id?: string }}){
-  const id = searchParams?.id || '';
+// Next.js 15: searchParams ist Promise
+export default async function WerberOverview(props: { searchParams?: Promise<Record<string, string>> }){
+  const sp = (await (props.searchParams ?? Promise.resolve({}))) as Record<string, string>;
+  const id = sp?.id || '';
+
   const { total, ledger } = id ? await getData(id) : { total: 0, ledger: []};
   return (
     <main className="p-6 space-y-4">
@@ -30,7 +33,7 @@ export default async function WerberOverview({ searchParams }:{ searchParams: { 
               </thead>
               <tbody>
                 {ledger.map((r:any)=>(
-                  <tr key={r.id} className="border-t">
+                  <tr key={r.id || (r.date + '-' + r.points + '-' + r.reason)} className="border-t">
                     <td className="px-3 py-2">{r.date}</td>
                     <td className="px-3 py-2">{r.points}</td>
                     <td className="px-3 py-2">{r.reason}</td>
