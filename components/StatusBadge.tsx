@@ -1,3 +1,4 @@
+<<<<<<< ours
 
 import clsx from 'clsx'
 export default function StatusBadge({ status }: { status: string }) {
@@ -10,3 +11,6 @@ export default function StatusBadge({ status }: { status: string }) {
   }
   return <span className={clsx('px-2 py-1 rounded text-xs font-medium', map[status] || 'bg-gray-200')}>{status}</span>
 }
+=======
+import React from 'react';
+>>>>>>> theirs
