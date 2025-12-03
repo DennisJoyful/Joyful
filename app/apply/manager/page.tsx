@@ -7,10 +7,10 @@ export default function ApplyManager() {
   const manager = typeof window !== 'undefined' ? (new URLSearchParams(location.search).get('ref') || 'manager-unknown') : 'manager-unknown';
 
   async function submit() {
-    await fetch('/api/mock/apply', {
+    await fetch('/api/apply', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ type: 'manager', manager, name, handle }),
+      body: JSON.stringify({ type: 'manager', ref: manager, name, handle }),
     });
     alert('Danke! Wir haben deine Bewerbung erhalten.');
   }

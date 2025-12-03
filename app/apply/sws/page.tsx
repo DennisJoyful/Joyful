@@ -7,10 +7,10 @@ export default function ApplySWS() {
   const werber = typeof window !== 'undefined' ? (new URLSearchParams(location.search).get('ref') || 'werber-unknown') : 'werber-unknown';
 
   async function submit() {
-    await fetch('/api/mock/apply', {
+    await fetch('/api/apply', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ type: 'sws', werber, name, handle }),
+      body: JSON.stringify({ type: 'sws', ref: werber, name, handle }),
     });
     alert('Danke! Wir haben deine Bewerbung erhalten.');
   }
