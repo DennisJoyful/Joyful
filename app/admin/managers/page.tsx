@@ -10,141 +10,40 @@ export default function AdminManagersPage() {
   const [loading, setLoading] = useState(false)
   const [res, setRes] = useState<any>(null)
   const [err, setErr] = useState<string>('')
-  const [diag, setDiag] = useState<any>(null)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setErr('')
-    setRes(null)
-    setLoading(true)
-    setDiag(null)
-
+    setErr(''); setRes(null); setLoading(true)
     try {
       const payload: any = { display_name: displayName, mode }
       if (mode === 'with_email') payload.email = email
       if (mode === 'without_email') payload.tiktok_handle = handle
-
-      const r = await fetch('/api/admin/managers/create', {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify(payload)
-      })
-
-      const txt = await r.text()
-      let data: any
-      try { data = JSON.parse(txt) } catch {
-        data = { ok:false, error:`Non-JSON response (status ${r.status})`, details: txt.slice(0,200) }
-      }
-
-      if (!r.ok || !data.ok) {
-        setErr(data?.error || `HTTP ${r.status}`)
-        // Diagnose: direkte GETs
-        const p1 = await fetch('/api/admin/ping').then(r=>r.text()).catch(()=>'-')
-        const p2 = await fetch('/api/admin/managers/create').then(r=>r.text()).catch(()=>'-')
-        setDiag({ ping: p1, createGET: p2 })
-      } else {
-        setRes(data)
-      }
-    } catch (e:any) {
-      setErr(e?.message || 'Unbekannter Fehler')
-    } finally {
-      setLoading(false)
-    }
+      const r = await fetch('/api/admin/managers/create', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+      const txt = await r.text(); let data:any; try{ data = JSON.parse(txt) }catch{ data={ok:false,error:'Non-JSON',details:txt} }
+      if (!r.ok || !data.ok) setErr(data.error||`HTTP ${r.status}`); else setRes(data)
+    } finally { setLoading(false) }
   }
 
   return (
     <div className="max-w-lg space-y-5">
-      <div>
-        <h1 className="text-2xl font-semibold">Manager anlegen (Admin, TEMP ohne Auth)</h1>
-        <p className="text-sm text-gray-600">
-          Diese Seite ist temporär ohne Admin-Token. Bitte nach dem Test wieder die sichere Version nutzen.
-        </p>
-      </div>
-
+      <h1 className="text-2xl font-semibold">Manager anlegen (TEMP ohne Auth)</h1>
       <div className="flex gap-4 text-sm">
-        <label className="flex items-center gap-2">
-          <input type="radio" checked={mode==='with_email'} onChange={()=>setMode('with_email')} />
-          Mit E-Mail (empfohlen)
-        </label>
-        <label className="flex items-center gap-2">
-          <input type="radio" checked={mode==='without_email'} onChange={()=>setMode('without_email')} />
-          Ohne E-Mail (kein Login)
-        </label>
+        <label className="flex items-center gap-2"><input type="radio" checked={mode==='with_email'} onChange={()=>setMode('with_email')} /> Mit E-Mail</label>
+        <label className="flex items-center gap-2"><input type="radio" checked={mode==='without_email'} onChange={()=>setMode('without_email')} /> Ohne E-Mail</label>
       </div>
-
-      <form onSubmit={submit} className="space-y-4">
-        <label className="block">
-          <span className="text-sm">Anzeigename</span>
-          <input
-            required
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            className="mt-1 w-full border rounded px-3 py-2"
-            placeholder="Max Mustermann"
-          />
-        </label>
-
-        {mode === 'with_email' && (
-          <label className="block">
-            <span className="text-sm">E-Mail (für Login/Einladung)</span>
-            <input
-              required
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full border rounded px-3 py-2"
-              placeholder="manager@beispiel.de"
-            />
-          </label>
-        )}
-
-        {mode === 'without_email' && (
-          <label className="block">
-            <span className="text-sm">TikTok-Handle (nur Notiz)</span>
-            <input
-              required
-              value={handle}
-              onChange={(e) => setHandle(e.target.value)}
-              className="mt-1 w-full border rounded px-3 py-2"
-              placeholder="managerhandle"
-            />
-          </label>
-        )}
-
-        <button
-          disabled={loading}
-          className="px-4 py-2 rounded bg-black text-white disabled:opacity-50"
-        >
-          {loading ? 'Anlegen…' : 'Anlegen'}
-        </button>
+      <form onSubmit={submit} className="space-y-3">
+        <input required value={displayName} onChange={e=>setDisplayName(e.target.value)} placeholder="Anzeigename" className="w-full border rounded px-3 py-2" />
+        {mode==='with_email' && <input required type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="manager@beispiel.de" className="w-full border rounded px-3 py-2" />}
+        {mode==='without_email' && <input required value={handle} onChange={e=>setHandle(e.target.value)} placeholder="TikTok-Handle (nur Notiz)" className="w-full border rounded px-3 py-2" />}
+        <button disabled={loading} className="px-4 py-2 rounded bg-black text-white disabled:opacity-50">{loading?'Anlegen…':'Anlegen'}</button>
       </form>
-
-      {err && (
-        <div className="p-3 border border-red-300 bg-red-50 text-sm text-red-700 rounded space-y-2">
-          <div>Fehler: {err}</div>
-          {diag && (
-            <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(diag, null, 2)}</pre>
-          )}
-        </div>
-      )}
-
-      {res?.ok && (
-        <div className="p-3 border rounded text-sm space-y-1">
-          <p className="font-medium text-green-700">Erfolgreich angelegt.</p>
-          {res.manager_id && (
-            <p>
-              Manager-ID: <code>{res.manager_id}</code>
-            </p>
-          )}
-          <p>
-            Bewerbungslink: <code>{res.apply_url}</code>
-          </p>
-          <p>
-            Referral-Code: <code>{res.referral_code}</code>
-          </p>
-          {res.note && <p className="text-amber-700">{res.note}</p>}
-        </div>
-      )}
+      {err && <div className="p-2 border border-red-300 bg-red-50 text-sm text-red-700 rounded">Fehler: {err}</div>}
+      {res?.ok && <div className="p-3 border rounded text-sm space-y-1">
+        <p className="font-medium text-green-700">Erfolgreich angelegt.</p>
+        {res.manager_id && <p>Manager-ID: <code>{res.manager_id}</code></p>}
+        <p>Bewerbungslink: <code>{res.apply_url}</code></p>
+        <p>Referral-Code: <code>{res.referral_code}</code></p>
+      </div>}
     </div>
   )
 }

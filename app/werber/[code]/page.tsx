@@ -1,4 +1,5 @@
-import { getServiceClient } from "@/lib/serverSupabase"
+
+import { getServiceClient } from '@/lib/serverSupabase'
 
 async function getData(code: string) {
   const supa = getServiceClient()
@@ -11,13 +12,11 @@ async function getData(code: string) {
     .select('points, reason, created_at, creator_id, month')
     .eq('recruiter_id', rec.id)
     .order('created_at', { ascending: false })
-  const total = (pts||[]).reduce((s,r)=>s+(r.points||0),0)
+  const total = (pts||[]).reduce((s,r)=> s + (r.points||0), 0)
   return { rec, pts: pts||[], total }
 }
 
-export default async function WerberPublic(
-  { params }: { params: Promise<{ code: string }> }
-) {
+export default async function WerberPublic({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params
   const data = await getData(code)
   if (!data) return <p>Code ungültig.</p>
@@ -27,13 +26,7 @@ export default async function WerberPublic(
       <p>Gesamt: <b>{data.total}</b> Punkte</p>
       <div className="border rounded">
         <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left border-b">
-              <th className="py-2 px-2">Datum</th>
-              <th className="px-2">Grund</th>
-              <th className="px-2">Punkte</th>
-            </tr>
-          </thead>
+          <thead><tr className="text-left border-b"><th className="py-2 px-2">Datum</th><th className="px-2">Grund</th><th className="px-2">Punkte</th></tr></thead>
           <tbody>
             {data.pts.map((r:any, i:number)=> (
               <tr key={i} className="border-b">

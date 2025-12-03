@@ -2,64 +2,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/serverSupabase'
 
-function randomCode(prefix: string) {
-  return `${prefix}-${Math.random().toString(36).slice(2,7).toUpperCase()}`
-}
+function randomCode(prefix: string) { return `${prefix}-${Math.random().toString(36).slice(2,7).toUpperCase()}` }
 
-// Diagnose: erlaubt GET, erzeugt nichts
 export async function GET() {
-  return NextResponse.json({ ok: true, route: 'admin/managers/create', method: 'GET', note: 'TEMP NO AUTH' })
+  return NextResponse.json({ ok:true, route:'admin/managers/create', method:'GET', note:'TEMP NO AUTH' })
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // ⚠️ TEMPORÄR KEINE AUTH-PRÜFUNG (nur zum Testen, danach wieder absichern!)
-    const body = await req.json().catch(() => null)
+    const body = await req.json().catch(()=>null)
     const { display_name, email, tiktok_handle, mode = 'with_email' } = body || {}
     if (!display_name || (mode === 'with_email' && !email) || (mode === 'without_email' && !tiktok_handle)) {
       return NextResponse.json({ ok:false, error:'missing params' }, { status:400 })
     }
-
     const supa = getServiceClient()
     let managerUserId: string | null = null
 
     if (mode === 'with_email') {
-      const invite = await supa.auth.admin.inviteUserByEmail(email as string, {
-        redirectTo: process.env.SITE_URL || undefined,
-      })
-      if (invite.error && invite.error.status !== 422) {
-        return NextResponse.json({ ok:false, error: invite.error.message }, { status:500 })
-      }
+      const invite = await supa.auth.admin.inviteUserByEmail(email as string, { redirectTo: process.env.SITE_URL || undefined })
+      if (invite.error && invite.error.status !== 422) return NextResponse.json({ ok:false, error: invite.error.message }, { status:500 })
       managerUserId = invite.data?.user?.id || null
-      if (!managerUserId) {
-        return NextResponse.json({ ok:false, error:'could not create/invite user' }, { status:500 })
-      }
-      await supa.from('profiles').upsert({
-        id: managerUserId,
-        role: 'manager',
-        display_name,
-      })
+      if (!managerUserId) return NextResponse.json({ ok:false, error:'could not create/invite user' }, { status:500 })
+      await supa.from('profiles').upsert({ id: managerUserId, role: 'manager', display_name })
     }
 
     const code = randomCode('MGR')
-    const { error: refErr } = await supa.from('referral_codes').insert({
-      code,
-      type: 'manager',
-      manager_id: managerUserId,
-      active: true,
-    } as any)
-    if (refErr) {
-      return NextResponse.json({ ok:false, error: refErr.message }, { status:500 })
-    }
+    const { error: refErr } = await supa.from('referral_codes').insert({ code, type: 'manager', manager_id: managerUserId, active: true } as any)
+    if (refErr) return NextResponse.json({ ok:false, error: refErr.message }, { status:500 })
 
-    return NextResponse.json({
-      ok: true,
-      manager_id: managerUserId,
-      referral_code: code,
-      apply_url: `/sws/apply/${code}`,
-      note: mode === 'without_email' ? 'Kein Login möglich, da ohne Email' : undefined,
-    })
-  } catch (err: any) {
+    return NextResponse.json({ ok:true, manager_id: managerUserId, referral_code: code, apply_url: `/sws/apply/${code}` })
+  } catch (err:any) {
     return NextResponse.json({ ok:false, error: err?.message || 'unexpected error' }, { status:500 })
   }
 }

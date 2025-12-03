@@ -8,7 +8,5 @@ export default function StatusBadge({ status }: { status: string }) {
     rejected: 'bg-red-200 text-red-900',
     joined: 'bg-green-200 text-green-900',
   }
-  return (
-    <span className={clsx('px-2 py-1 rounded text-xs font-medium', map[status] || 'bg-gray-200')}>{status}</span>
-  )
+  return <span className={clsx('px-2 py-1 rounded text-xs font-medium', map[status] || 'bg-gray-200')}>{status}</span>
 }
