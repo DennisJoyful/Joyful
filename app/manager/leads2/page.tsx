@@ -25,7 +25,6 @@ export default async function Leads2Page() {
         <a href="/manager/leads" className="text-sm underline">zur alten Ansicht</a>
       </div>
       <p className="text-gray-600 text-sm">Diese Ansicht berechnet <strong>Follow-up-Daten (+5 Tage)</strong> automatisch, bietet <strong>Filter</strong> und zeigt Live-Status. Buttons schreiben aktuell in eine Mock-API.</p>
-      {/* @ts-expect-error Server Action passt hier als Demo */}
       <LeadTable rows={rows} onAction={update} />
     </main>
   );
