@@ -1,0 +1,5 @@
+{
+  "buildCommand": "next build",
+  "installCommand": "npm install && npm install -D tailwindcss postcss autoprefixer && npm i xlsx --no-save",
+  "framework": "nextjs"
+}

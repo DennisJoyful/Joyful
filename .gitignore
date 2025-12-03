@@ -1,0 +1,33 @@
+# ---- Dependencies ----
+node_modules/
+# package managers
+pnpm-lock.yaml
+yarn.lock
+# npm logs
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- Next.js / Build ----
+.next/
+out/
+.vercel/
+coverage/
+dist/
+
+# ---- Env / Secrets ----
+.env
+.env.local
+.env.*.local
+
+# ---- OS / Editors ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ---- Misc ----
+*.patch
+*.zip
+*.tar
+*.tgz
