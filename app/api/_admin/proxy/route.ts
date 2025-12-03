@@ -1,20 +1,44 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 
-// Proxy nur für Admin-Frontends – hängt den Token serverseitig an
 export async function POST(req: NextRequest) {
-  const u = new URL(req.url)
-  const target = u.searchParams.get('to') // z.B. /api/admin/managers/create
-  if (!target) return NextResponse.json({ ok:false, error:'missing to' }, { status:400 })
+  try {
+    const u = new URL(req.url)
+    const target = u.searchParams.get('to')
+    if (!target) {
+      return NextResponse.json({ ok:false, error:'missing "to" param' }, { status:400 })
+    }
 
-  const body = await req.text()
-  const res = await fetch(new URL(target, u.origin).toString(), {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.ADMIN_API_TOKEN || ''}`,
-      'Content-Type': req.headers.get('content-type') || 'application/json'
-    },
-    body
-  })
-  const data = await res.text()
-  return new NextResponse(data, { status: res.status, headers: { 'Content-Type': res.headers.get('content-type') || 'application/json' } })
+    const body = await req.text()
+    const upstream = await fetch(new URL(target, u.origin).toString(), {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.ADMIN_API_TOKEN || ''}`,
+        'Content-Type': req.headers.get('content-type') || 'application/json',
+      },
+      body,
+    })
+
+    const txt = await upstream.text()
+    let data: any
+    try { data = JSON.parse(txt) } catch { data = { passthrough: txt } }
+
+    if (!upstream.ok) {
+      return NextResponse.json({
+        ok: false,
+        status: upstream.status,
+        error: data?.error || 'upstream error',
+        details: data?.passthrough ? String(data.passthrough).slice(0,300) : undefined
+      }, { status: upstream.status })
+    }
+
+    if (typeof data === 'object' && data !== null) {
+      if (data.ok === undefined) data.ok = true
+      return NextResponse.json(data, { status: upstream.status })
+    }
+    return NextResponse.json({ ok:true, data }, { status: upstream.status })
+
+  } catch (err: any) {
+    return NextResponse.json({ ok:false, error: err?.message || 'proxy failure' }, { status:500 })
+  }
 }

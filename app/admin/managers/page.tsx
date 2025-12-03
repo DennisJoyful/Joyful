@@ -1,11 +1,9 @@
-'use client'
 
+'use client'
 import { useState } from 'react'
 
-type Mode = 'with_email' | 'without_email'
-
 export default function AdminManagersPage() {
-  const [mode, setMode] = useState<Mode>('with_email')
+  const [mode, setMode] = useState<'with_email'|'without_email'>('with_email')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [handle, setHandle] = useState('')
@@ -24,20 +22,24 @@ export default function AdminManagersPage() {
       if (mode === 'with_email') payload.email = email
       if (mode === 'without_email') payload.tiktok_handle = handle
 
-      // WICHTIG: Proxy benutzen – KEIN Authorization-Header im Client!
       const r = await fetch('/api/_admin/proxy?to=/api/admin/managers/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
       })
 
-      const data = await r.json()
+      const txt = await r.text()
+      let data: any
+      try { data = JSON.parse(txt) } catch {
+        data = { ok:false, error:`Non-JSON response (status ${r.status})`, details: txt.slice(0,200) }
+      }
+
       if (!r.ok || !data.ok) {
         setErr(data?.error || `HTTP ${r.status}`)
       } else {
         setRes(data)
       }
-    } catch (e: any) {
+    } catch (e:any) {
       setErr(e?.message || 'Unbekannter Fehler')
     } finally {
       setLoading(false)
@@ -55,19 +57,11 @@ export default function AdminManagersPage() {
 
       <div className="flex gap-4 text-sm">
         <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            checked={mode === 'with_email'}
-            onChange={() => setMode('with_email')}
-          />
+          <input type="radio" checked={mode==='with_email'} onChange={()=>setMode('with_email')} />
           Mit E-Mail (empfohlen)
         </label>
         <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            checked={mode === 'without_email'}
-            onChange={() => setMode('without_email')}
-          />
+          <input type="radio" checked={mode==='without_email'} onChange={()=>setMode('without_email')} />
           Ohne E-Mail (kein Login)
         </label>
       </div>
@@ -141,8 +135,7 @@ export default function AdminManagersPage() {
           </p>
           {res.note && <p className="text-amber-700">{res.note}</p>}
           <p className="text-gray-600">
-            Hinweis: Der Bewerbungslink ist für den Manager später auch unter{' '}
-            <code>/manager/profile</code> sichtbar (nach Login).
+            Hinweis: Der Bewerbungslink ist später nach Login unter <code>/manager/profile</code> sichtbar.
           </p>
         </div>
       )}
