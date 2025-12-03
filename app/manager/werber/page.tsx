@@ -1,10 +1,20 @@
+import { USE_SUPABASE, BASE } from '@/lib/config';
+
+async function getData() {
+  const path = USE_SUPABASE ? '/api/v1/werber' : '/api/mock/werber';
+  const res = await fetch(`${BASE}${path}`, { cache: 'no-store' });
+  if (!res.ok) return [];
+  return (await res.json())?.rows || [];
+}
+
 export default async function WerberOverview() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/mock/werber`, { cache: 'no-store' });
-  const rows = res.ok ? (await res.json()).rows : [];
+  const rows = await getData();
   return (
     <main className="p-6 space-y-4">
       <h1 className="text-2xl font-semibold">Werber-Übersicht</h1>
-      <p className="text-gray-600 text-sm">Punktestand, Ref-Link und Geworbene je Werber (Demo-Daten). Später durch Supabase ersetzen.</p>
+      <p className="text-gray-600 text-sm">
+        Punktestand, Ref-Link und Geworbene je Werber ({USE_SUPABASE ? 'Supabase' : 'Mock'}).
+      </p>
       <div className="overflow-x-auto rounded-xl ring-1 ring-gray-200">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-left">
