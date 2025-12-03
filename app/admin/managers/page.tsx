@@ -33,18 +33,29 @@ export default function AdminManagersPage() {
       const txt = await r.text()
       let data: any
       try { data = JSON.parse(txt) } catch {
-        data = { ok:false, error:`Non-JSON response (status ${r.status})`, details: txt.slice(0,200) }
+        data = { ok:false, error:`Non-JSON response (status ${r.status})`, details: txt.slice(0,300) }
       }
 
       if (!r.ok || !data.ok) {
         setErr(data?.error || `HTTP ${r.status}`)
 
-        // Diagnose: Proxy -> GET ping
+        // Diagnose 1: Proxy -> ping (GET)
         const pr = await fetch('/api/_admin/proxy?to=/api/admin/ping&m=GET', { method:'POST' })
         const ptxt = await pr.text()
         let pobj: any
         try { pobj = JSON.parse(ptxt) } catch { pobj = { raw: ptxt } }
-        setDiag({ proxyPing: pobj })
+
+        // Diagnose 2: Proxy -> echo (POST)
+        const eresp = await fetch('/api/_admin/proxy?to=/api/admin/echo', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify({ probe: true })
+        })
+        const etxt = await eresp.text()
+        let eobj: any
+        try { eobj = JSON.parse(etxt) } catch { eobj = { raw: etxt } }
+
+        setDiag({ proxyPing: pobj, proxyEcho: eobj, upstream: data })
       } else {
         setRes(data)
       }
@@ -125,8 +136,8 @@ export default function AdminManagersPage() {
       {err && (
         <div className="p-3 border border-red-300 bg-red-50 text-sm text-red-700 rounded space-y-2">
           <div>Fehler: {err}</div>
-          {diag?.proxyPing && (
-            <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(diag.proxyPing, null, 2)}</pre>
+          {diag && (
+            <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(diag, null, 2)}</pre>
           )}
         </div>
       )}

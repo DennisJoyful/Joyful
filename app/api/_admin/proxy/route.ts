@@ -32,15 +32,16 @@ export async function POST(req: NextRequest) {
         status: upstream.status,
         error: data?.error || 'upstream error',
         details: data?.passthrough ? String(data.passthrough).slice(0,300) : undefined,
-        methodUsed: method
+        methodUsed: method,
+        target
       }, { status: upstream.status })
     }
 
     if (typeof data === 'object' && data !== null) {
       if (data.ok === undefined) data.ok = true
-      return NextResponse.json({ ...data, methodUsed: method }, { status: upstream.status })
+      return NextResponse.json({ ...data, methodUsed: method, target }, { status: upstream.status })
     }
-    return NextResponse.json({ ok:true, data, methodUsed: method }, { status: upstream.status })
+    return NextResponse.json({ ok:true, data, methodUsed: method, target }, { status: upstream.status })
 
   } catch (err: any) {
     return NextResponse.json({ ok:false, error: err?.message || 'proxy failure' }, { status:500 })
