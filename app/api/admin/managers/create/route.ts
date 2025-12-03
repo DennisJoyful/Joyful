@@ -12,6 +12,12 @@ function randomCode(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2,7).toUpperCase()}`
 }
 
+export async function GET(req: NextRequest) {
+  // Diagnose 405: erlaubt GET zum Testen, erzeugt aber nichts
+  const ok = requireAdmin(req)
+  return NextResponse.json({ ok, route: 'admin/managers/create', method: 'GET' }, { status: ok ? 200 : 401 })
+}
+
 export async function POST(req: NextRequest) {
   try {
     if (!requireAdmin(req)) {

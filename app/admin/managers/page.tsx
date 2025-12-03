@@ -10,12 +10,14 @@ export default function AdminManagersPage() {
   const [loading, setLoading] = useState(false)
   const [res, setRes] = useState<any>(null)
   const [err, setErr] = useState<string>('')
+  const [diag, setDiag] = useState<any>(null)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setErr('')
     setRes(null)
     setLoading(true)
+    setDiag(null)
 
     try {
       const payload: any = { display_name: displayName, mode }
@@ -36,6 +38,13 @@ export default function AdminManagersPage() {
 
       if (!r.ok || !data.ok) {
         setErr(data?.error || `HTTP ${r.status}`)
+
+        // Diagnose: Proxy -> GET ping
+        const pr = await fetch('/api/_admin/proxy?to=/api/admin/ping&m=GET', { method:'POST' })
+        const ptxt = await pr.text()
+        let pobj: any
+        try { pobj = JSON.parse(ptxt) } catch { pobj = { raw: ptxt } }
+        setDiag({ proxyPing: pobj })
       } else {
         setRes(data)
       }
@@ -114,8 +123,11 @@ export default function AdminManagersPage() {
       </form>
 
       {err && (
-        <div className="p-3 border border-red-300 bg-red-50 text-sm text-red-700 rounded">
-          Fehler: {err}
+        <div className="p-3 border border-red-300 bg-red-50 text-sm text-red-700 rounded space-y-2">
+          <div>Fehler: {err}</div>
+          {diag?.proxyPing && (
+            <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(diag.proxyPing, null, 2)}</pre>
+          )}
         </div>
       )}
 
