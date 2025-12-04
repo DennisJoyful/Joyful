@@ -28,14 +28,14 @@ export default function ApplyForm({ slug }: { slug: string }) {
   const normalizedHandle = useMemo(() => handle.replace(/^@/, '').trim(), [handle]);
 
   async function validateHandle() {
-    if (!normalizedHandle) return;
+    if (!normalizedHandle) { setHandleOK(null); return; }
     setChecking(true); setHandleOK(null);
     try {
       const res = await fetch('/api/validate/handle?handle=' + encodeURIComponent(normalizedHandle));
       const j = await res.json();
       setHandleOK(!!j.exists);
     } catch {
-      setHandleOK(null);
+      setHandleOK(false);
     } finally {
       setChecking(false);
     }
@@ -58,6 +58,7 @@ export default function ApplyForm({ slug }: { slug: string }) {
     e.preventDefault();
     setOk(''); setErr('');
 
+    if (handleOK !== true) { setErr('Bitte TikTok-Handle zuerst erfolgreich prüfen.'); return; }
     const contactErr = contactValidationMsg();
     if (contactErr) { setErr(contactErr); return; }
     if (!consent) { setErr('Bitte der Datennutzung zustimmen.'); return; }
@@ -99,18 +100,22 @@ export default function ApplyForm({ slug }: { slug: string }) {
 
         <form onSubmit={submit} className="mt-8 grid gap-5">
           <div className="grid gap-2">
-            <Label title="TikTok Handle" hint="Wir prüfen, ob es das Profil gibt." />
+            <Label title="TikTok Handle" hint="Wir prüfen automatisch – bitte zuerst prüfen." />
             <div className="flex gap-2">
               <div className="flex-1 flex items-center gap-2 border rounded-2xl px-3 py-2">
                 <span className="text-gray-400">@</span>
-                <input required value={handle} onChange={e=>setHandle(e.target.value)} placeholder="deinhandle" className="flex-1 outline-none" />
+                <input required value={handle} onChange={e=>{ setHandle(e.target.value); setHandleOK(null); }} onBlur={validateHandle} placeholder="deinhandle" className="flex-1 outline-none" />
               </div>
               <button type="button" onClick={validateHandle} className="rounded-2xl px-4 py-2 border whitespace-nowrap">
-                {checking ? 'Prüfe…' : 'Handle prüfen'}
+                {checking ? 'Prüfe…' : handleOK===true ? 'Geprüft ✅' : 'Handle prüfen'}
               </button>
             </div>
             {handleOK === true && <div className="text-xs text-green-600">Handle bestätigt ✅</div>}
-            {handleOK === false && <div className="text-xs text-orange-600">Nicht verifizierbar – öffne <a className="underline" href={`https://www.tiktok.com/@${normalizedHandle}`} target="_blank">das Profil</a> zur Kontrolle.</div>}
+            {handleOK === false && (
+              <div className="text-xs text-orange-600">
+                Konnte nicht bestätigt werden. Bitte öffne <a className="underline" href={`https://www.tiktok.com/@${normalizedHandle}`} target="_blank">dein Profil</a> und prüfe manuell.
+              </div>
+            )}
           </div>
 
           <div className="grid gap-2">
@@ -127,11 +132,11 @@ export default function ApplyForm({ slug }: { slug: string }) {
           <div className="grid md:grid-cols-2 gap-4">
             <label className="grid gap-1">
               <Label title="Follower (optional)" />
-              <input inputMode="numeric" pattern="\d*" value={followers} onChange={e=>setFollowers(e.target.value)} className="border rounded-2xl px-3 py-2" placeholder="z. B. 1200" />
+              <input inputMode="numeric" pattern="\\d*" value={followers} onChange={e=>setFollowers(e.target.value)} className="border rounded-2xl px-3 py-2" placeholder="z. B. 1200" />
             </label>
             <label className="grid gap-1">
               <Label title="Geplante Streaming-Stunden pro Monat (optional)" />
-              <input inputMode="numeric" pattern="\d*" value={plannedHours} onChange={e=>setPlannedHours(e.target.value)} className="border rounded-2xl px-3 py-2" placeholder="z. B. 25" />
+              <input inputMode="numeric" pattern="\\d*" value={plannedHours} onChange={e=>setPlannedHours(e.target.value)} className="border rounded-2xl px-3 py-2" placeholder="z. B. 25" />
             </label>
           </div>
 
@@ -140,7 +145,7 @@ export default function ApplyForm({ slug }: { slug: string }) {
             Ich stimme der Verarbeitung meiner Angaben zum Zweck der Bewerbung zu.
           </label>
 
-          <button className="rounded-2xl px-6 py-3 font-semibold border shadow hover:shadow-md bg-gradient-to-r from-yellow-300 to-amber-400">
+          <button disabled={handleOK!==true} className={"rounded-2xl px-6 py-3 font-semibold border shadow hover:shadow-md bg-gradient-to-r from-yellow-300 to-amber-400 " + (handleOK===true ? '' : 'opacity-60 cursor-not-allowed')}>
             Bewerbung absenden
           </button>
           <div className="text-xs text-gray-500 text-center">100% kostenlos • unverbindlich • dauert 2 Minuten</div>
