@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     // Refresh MV from ZIP 2 if present (ignore error if function not available)
     const { error: mvErr } = await sb.rpc('refresh_mv_active_7_15');
-    // mvErr can be safely ignored
+    // ignore mvErr intentionally
 
     return NextResponse.json({ ok: true, inserted_monthly: batchMonthly.length, streamer_updates: updateStreamer.length, skipped });
   } catch (e: any) {
