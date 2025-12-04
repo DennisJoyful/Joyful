@@ -1,27 +1,24 @@
 import { supabaseServer } from '@/lib/supabase/server';
 
-export type RuleSet = Record<string, number>;
-
-const DEFAULTS: RuleSet = {
-  bonus_first_full_month_7_15: 500,
-  bonus_three_consecutive_7_15: 100,
-  bonus_15k_diamonds_first_3m: 150,
-  bonus_50k_diamonds_first_3m: 300,
-  bonus_per_5_active_recruits: 500
+export type Rules = {
+  first_month_active_7_15: number;
+  three_months_7_15: number;
+  '15k_diamonds_in_3_months': number;
+  '50k_diamonds_in_3_months': number;
+  rookie_150k_in_month: number;
+  per_5_active_recruits: number;
 };
 
-export async function loadRules(): Promise<RuleSet> {
+export async function loadRules(): Promise<Rules> {
   const sb = await supabaseServer();
-  const admin = await sb.from('admin_settings').select('reward_rules').eq('id', 1).maybeSingle();
-  let rules: RuleSet | null = null;
-  if (admin.data?.reward_rules && typeof admin.data.reward_rules === 'object') {
-    rules = admin.data.reward_rules as RuleSet;
-  }
-  if (!rules) {
-    const rr = await sb.from('reward_rules').select('key, points');
-    if (!rr.error && rr.data) {
-      rules = rr.data.reduce((acc: RuleSet, r: any) => { acc[r.key] = r.points; return acc; }, {} as RuleSet);
-    }
-  }
-  return { ...DEFAULTS, ...(rules ?? {}) };
+  const { data } = await sb.from('reward_rules').select('key, points');
+  const map: any = Object.fromEntries((data ?? []).map((r:any)=> [r.key, r.points]));
+  return {
+    first_month_active_7_15: map['first_month_active_7_15'] ?? 500,
+    three_months_7_15: map['three_months_7_15'] ?? 100,
+    '15k_diamonds_in_3_months': map['15k_diamonds_in_3_months'] ?? 150,
+    '50k_diamonds_in_3_months': map['50k_diamonds_in_3_months'] ?? 300,
+    rookie_150k_in_month: map['rookie_150k_in_month'] ?? 0,
+    per_5_active_recruits: map['per_5_active_recruits'] ?? 500,
+  };
 }
