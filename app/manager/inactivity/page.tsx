@@ -3,7 +3,7 @@ import { Table } from '@/components/Table';
 import dayjs from 'dayjs';
 
 export default async function ManagerInactivityPage() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return <div className="card">Bitte einloggen</div>;
 

@@ -5,7 +5,7 @@ function Badge({ children }: { children: React.ReactNode }) {
 }
 
 export default async function ManagerLeadsPage() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return <div className="card">Bitte einloggen</div>;
 

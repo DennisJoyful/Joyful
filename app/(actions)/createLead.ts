@@ -10,7 +10,7 @@ export async function createLead(input: {
   status?: 'keine_reaktion' | 'eingeladen' | 'abgesagt' | 'gejoint';
   notes?: string;
 }) {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 

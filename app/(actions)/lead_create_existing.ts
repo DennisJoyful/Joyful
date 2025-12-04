@@ -18,12 +18,11 @@ export async function createLeadExisting(input: {
   notes?: string;
   werber_id?: string; // uuid
 }) {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   const { data: { user }, error: userErr } = await sb.auth.getUser();
   if (userErr) throw userErr;
   if (!user) throw new Error('Not authenticated');
 
-  // resolve manager_id of current user from profiles (role might be manager)
   const { data: prof, error: pErr } = await sb
     .from('profiles')
     .select('id, role')

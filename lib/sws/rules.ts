@@ -11,7 +11,7 @@ const DEFAULTS: RuleSet = {
 };
 
 export async function loadRules(): Promise<RuleSet> {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   const admin = await sb.from('admin_settings').select('reward_rules').eq('id', 1).maybeSingle();
   let rules: RuleSet | null = null;
   if (admin.data?.reward_rules && typeof admin.data.reward_rules === 'object') {

@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const sb = supabaseServer();
+    const sb = await supabaseServer();
     const { error } = await sb.from('tiktok_monthly').upsert(batch, { onConflict: 'creator_id,month' });
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

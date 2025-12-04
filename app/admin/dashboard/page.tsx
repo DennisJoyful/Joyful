@@ -3,7 +3,7 @@ import { KPI } from '@/components/KPI';
 import { Table } from '@/components/Table';
 
 export default async function AdminDashboardPage() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return <div className="card">Bitte einloggen</div>;
 

@@ -14,7 +14,7 @@ type Row = {
 };
 
 export async function importTiktokMonthly(file: File) {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf);
   const ws = wb.Sheets[wb.SheetNames[0]];
@@ -26,7 +26,6 @@ export async function importTiktokMonthly(file: File) {
     const m = String(r.month ?? r.Month ?? '').trim();
     if (!creator_id || !m) continue;
 
-    // Normalize month to date (1st of month)
     const month = (m.length === 7 ? `${m}-01` : m);
 
     batch.push({
@@ -40,13 +39,11 @@ export async function importTiktokMonthly(file: File) {
     });
   }
 
-  // Upsert into tiktok_monthly
   const { error } = await sb.from('tiktok_monthly').upsert(batch, {
     onConflict: 'creator_id,month'
   });
   if (error) throw error;
 
-  // Refresh materialized view
   await sb.rpc('refresh_mv_active_7_15');
   return { ok: true, count: batch.length };
 }

@@ -6,7 +6,7 @@ import { loadRules } from '@/lib/sws/rules';
 type AwardResult = { created: number; skipped_duplicate: number; errors: number };
 
 export async function awardSWSPointsForMonth(monthISO: string): Promise<AwardResult> {
-  const sb = supabaseServer();
+  const sb = await supabaseServer();
   const rules = await loadRules();
 
   const { data: recruits, error: rErr } = await sb
@@ -20,7 +20,6 @@ export async function awardSWSPointsForMonth(monthISO: string): Promise<AwardRes
     const creator_id = rec.creator_id;
     if (!creator_id) continue;
 
-    // Werber bestimmen
     let werber_id: string | null = null;
 
     if (rec.lead_id) {
@@ -69,7 +68,6 @@ export async function awardSWSPointsForMonth(monthISO: string): Promise<AwardRes
       }
     }
 
-    // First full month 7/15
     if (isActive) {
       const joinedFull = new Date(Date.UTC(joined.getUTCFullYear(), joined.getUTCMonth() + 1, 1));
       if (curMonth.getTime() === joinedFull.getTime()) {
@@ -77,7 +75,6 @@ export async function awardSWSPointsForMonth(monthISO: string): Promise<AwardRes
       }
     }
 
-    // Diamonds thresholds within first 3 full months
     const m1 = new Date(Date.UTC(joined.getUTCFullYear(), joined.getUTCMonth() + 1, 1));
     const m2 = new Date(Date.UTC(joined.getUTCFullYear(), joined.getUTCMonth() + 2, 1));
     const m3 = new Date(Date.UTC(joined.getUTCFullYear(), joined.getUTCMonth() + 3, 1));
@@ -90,8 +87,6 @@ export async function awardSWSPointsForMonth(monthISO: string): Promise<AwardRes
       }
     }
 
-    // TODO: three consecutive months 7/15 (can be triggered at m3)
-    // Optional Rookie 150k
     if (metric.rookie && (metric.diamonds ?? 0) >= 150000) {
       const pts = (rules as any)['bonus_rookie_150k'] ?? 0;
       if (pts > 0) await credit('rookie_150k', pts);
