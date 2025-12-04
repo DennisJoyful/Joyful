@@ -100,7 +100,7 @@ export default function ApplyForm({ slug }: { slug: string }) {
 
         <form onSubmit={submit} className="mt-8 grid gap-5">
           <div className="grid gap-2">
-            <Label title="TikTok Handle" hint="Wir prüfen automatisch – bitte zuerst prüfen." />
+            <Label title="TikTok Handle" hint="Bitte prüfen – ohne Bestätigung kein Absenden." />
             <div className="flex gap-2">
               <div className="flex-1 flex items-center gap-2 border rounded-2xl px-3 py-2">
                 <span className="text-gray-400">@</span>
