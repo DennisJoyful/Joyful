@@ -100,7 +100,7 @@ export default function ApplyForm({ slug }: { slug: string }) {
 
         <form onSubmit={submit} className="mt-8 grid gap-5">
           <div className="grid gap-2">
-            <Label title="TikTok Handle" hint="Bitte prüfen – ohne Bestätigung kein Absenden." />
+            <Label title="TikTok Handle" hint="Wird gegen die TikTok Web-API geprüft." />
             <div className="flex gap-2">
               <div className="flex-1 flex items-center gap-2 border rounded-2xl px-3 py-2">
                 <span className="text-gray-400">@</span>
@@ -113,7 +113,7 @@ export default function ApplyForm({ slug }: { slug: string }) {
             {handleOK === true && <div className="text-xs text-green-600">Handle bestätigt ✅</div>}
             {handleOK === false && (
               <div className="text-xs text-orange-600">
-                Konnte nicht bestätigt werden. Bitte öffne <a className="underline" href={`https://www.tiktok.com/@${normalizedHandle}`} target="_blank">dein Profil</a> und prüfe manuell.
+                Konnte nicht bestätigt werden. Öffne <a className="underline" href={`https://www.tiktok.com/@${normalizedHandle}`} target="_blank">dein Profil</a> zur Kontrolle.
               </div>
             )}
           </div>
