@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
 
       if (!creatorId) { skipped++; continue; }
 
-      // Month: try from separate header if present, else current month fallback
       const monthRaw = getVal(r, ['Datenzeitraum','Monat','month']);
       const monthISO = parseMonthToISO(monthRaw ?? new Date().toISOString().slice(0,7));
       if (!monthISO) { skipped++; continue; }
@@ -46,7 +45,7 @@ export async function POST(req: NextRequest) {
         hours_streamed: Number.isFinite(hours) ? hours : 0,
         minutes_streamed: 0,
         diamonds: Number.isFinite(diamonds) ? diamonds : 0,
-        rookie: String(status ?? '').toLowerCase().includes('anfänger') // heuristic
+        rookie: String(status ?? '').toLowerCase().includes('anfänger')
       });
 
       if (handle || joinRaw) {
@@ -68,23 +67,9 @@ export async function POST(req: NextRequest) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Upsert streamer basics (handle, join_date if null)
-    for (const u of updateStreamer) {
-      if (!u.creator_id) continue;
-      // If streamer exists, only set handle if empty, join_date if null
-      const { data: exist } = await sb.from('streamer').select('creator_id, creator_handle, join_date').eq('creator_id', u.creator_id).maybeSingle();
-      if (!exist) {
-        await sb.from('streamer').insert({ creator_id: u.creator_id, creator_handle: u.creator_handle, join_date: u.join_date });
-      } else {
-        await sb.from('streamer').update({
-          creator_handle: exist.creator_handle || u.creator_handle || exist.creator_handle,
-          join_date: exist.join_date || u.join_date || exist.join_date
-        }).eq('creator_id', u.creator_id);
-      }
-    }
-
-    // Refresh MV from ZIP 2 if present
-    await sb.rpc('refresh_mv_active_7_15').catch(() => {});
+    // Refresh MV from ZIP 2 if present (ignore error if function not available)
+    const { error: mvErr } = await sb.rpc('refresh_mv_active_7_15');
+    // ignore mvErr intentionally
 
     return NextResponse.json({ ok: true, inserted_monthly: batchMonthly.length, streamer_updates: updateStreamer.length, skipped });
   } catch (e: any) {

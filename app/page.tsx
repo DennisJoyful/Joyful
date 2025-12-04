@@ -1,12 +1,11 @@
 export default function Home() {
   return (
-    <div className="card">
-      <h1 className="h1">Joyful – Starter</h1>
-      <p className="mt-2">Build ist grün, Configs sind aufgeräumt.</p>
-      <ul className="list-disc pl-6 mt-4">
-        <li>Next 15</li>
-        <li>Tailwind</li>
-        <li>Supabase Client/Server</li>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold">TikTok Live Agentur – Dashboard</h1>
+      <ul className="list-disc pl-5">
+        <li><a className="underline" href="/manager/leads">Manager · Leads</a></li>
+        <li><a className="underline" href="/werber/dashboard">Werber · Punkte</a></li>
+        <li><a className="underline" href="/admin/dashboard">Admin</a></li>
       </ul>
     </div>
   );
