@@ -2,7 +2,7 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { Table } from '@/components/Table';
 
 export default async function WerberDashboardPage() {
-  const sb = supabaseServer();
+  const sb = await supabaseServer(); // <-- await fixes Promise type
   const { data: { user } } = await sb.auth.getUser();
   if (!user) return <div className="card">Bitte einloggen</div>;
 
