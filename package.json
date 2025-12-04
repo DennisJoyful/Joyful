@@ -1,30 +1,7 @@
-
 {
-  "name": "tiktok-live-agentur",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
+  "name": "joyful-app",
+  "version": "1.0.0",
   "dependencies": {
-    "next": "15.0.3",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-	"@supabase/ssr": "^0.4.0",
-    "@supabase/supabase-js": "2.47.10",
-	"dayjs": "^1.11.13",
-	"xlsx": "^0.18.5",
-    "clsx": "2.1.1"
-  },
-  "devDependencies": {
-    "autoprefixer": "10.4.18",
-    "postcss": "8.4.35",
-    "tailwindcss": "3.4.13",
-    "typescript": "5.6.3",
-    "@types/node": "20.11.30",
-    "@types/react": "18.2.66",
-    "@types/react-dom": "18.2.22"
+    "cheerio": "^1.0.0"
   }
 }
