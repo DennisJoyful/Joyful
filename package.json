@@ -1,7 +1,29 @@
 {
   "name": "joyful-app",
   "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
   "dependencies": {
-    "cheerio": "^1.0.0"
+    "@supabase/supabase-js": "^2.43.4",
+    "@supabase/ssr": "^0.3.0",
+    "autoprefixer": "^10.4.17",
+    "cheerio": "^1.0.0",
+    "dayjs": "^1.11.10",
+    "next": "15.0.3",
+    "postcss": "^8.4.33",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tailwindcss": "^3.4.3",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.0",
+    "@types/react": "^18.2.7",
+    "@types/react-dom": "^18.2.4",
+    "typescript": "^5.4.0"
   }
 }
