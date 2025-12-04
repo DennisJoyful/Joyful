@@ -7,3 +7,5 @@ export function KPI({ label, value, hint }: { label: string; value: React.ReactN
     </div>
   );
 }
+
+export default KPI;
