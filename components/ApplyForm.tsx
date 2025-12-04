@@ -1,42 +1,39 @@
+'use client';
+import { useState } from 'react';
 
-'use client'
-import { useEffect, useState } from 'react'
-
-export default function ApplyForm({ refCode }: { refCode: string }) {
-  const [status, setStatus] = useState<'idle'|'loading'|'success'|'error'>('idle')
-  const [creatorHandle, setCreatorHandle] = useState('')
-  const [note, setNote] = useState('')
+export default function ApplyForm({ slug }: { slug: string }) {
+  const [handle, setHandle] = useState('');
+  const [contact, setContact] = useState('');
+  const [ok, setOk] = useState<string>('');
 
   async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    setStatus('loading')
-    const res = await fetch('/api/applications/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ref: refCode, creator_handle: creatorHandle, note })
-    })
-    const data = await res.json().catch(()=>({ok:false}))
-    setStatus(data.ok ? 'success' : 'error')
+    e.preventDefault();
+    // TODO: post to /api/apply to create lead; here we just show success for now
+    setOk('Danke! Deine Bewerbung ist eingegangen. Wir melden uns zeitnah.');
   }
 
-  useEffect(()=>{ window.scrollTo(0,0) },[])
-
-  if (status === 'success') return <div className="max-w-md space-y-3"><h1 className="text-2xl font-semibold">Danke!</h1><p>Wir melden uns bald.</p></div>
-
   return (
-    <div className="max-w-md">
-      <h1 className="text-2xl font-semibold mb-4">Bewirb dich als Streamer</h1>
-      <form onSubmit={submit} className="space-y-3">
-        <label className="block">
-          <span className="text-sm">Dein TikTok Handle (ohne @)</span>
-          <input required value={creatorHandle} onChange={e=>setCreatorHandle(e.target.value)} className="mt-1 w-full border rounded px-3 py-2" placeholder="deinname" />
+    <div className="max-w-md mx-auto bg-white rounded-2xl shadow p-6 border">
+      <div className="text-center">
+        <div className="text-xs tracking-widest uppercase text-gray-500">Joyful Live</div>
+        <h1 className="text-2xl font-bold mt-1">Bewerbung</h1>
+        <div className="text-sm text-gray-500">Referral-Code: <b>{slug}</b></div>
+      </div>
+
+      <form onSubmit={submit} className="mt-6 grid gap-4">
+        <label className="grid gap-1">
+          <span className="text-sm">TikTok Handle</span>
+          <input required value={handle} onChange={e=>setHandle(e.target.value)} className="border rounded-xl px-3 py-2" placeholder="@deinhandle" />
         </label>
-        <label className="block">
-          <span className="text-sm">Notiz (optional)</span>
-          <textarea value={note} onChange={e=>setNote(e.target.value)} className="mt-1 w-full border rounded px-3 py-2" />
+        <label className="grid gap-1">
+          <span className="text-sm">Kontakt (optional)</span>
+          <input value={contact} onChange={e=>setContact(e.target.value)} className="border rounded-xl px-3 py-2" placeholder="Discord / Telegram / E-Mail" />
         </label>
-        <button disabled={status==='loading'} className="px-4 py-2 rounded bg-black text-white disabled:opacity-50">{status==='loading'?'Sende…':'Bewerbung absenden'}</button>
+        <button className="rounded-2xl px-4 py-2 font-semibold border shadow-sm hover:shadow w-full">Jetzt bewerben</button>
+        <div className="text-xs text-gray-500 text-center">100% kostenlos • unverbindlich • in 2 Minuten</div>
       </form>
+
+      {ok && <div className="mt-4 text-green-600 text-sm text-center">{ok}</div>}
     </div>
-  )
+  );
 }

@@ -17,28 +17,45 @@ export async function POST(req: NextRequest) {
 
     const sb = await supabaseServer();
     let streamerUpserts = 0;
+    let managerMatches = 0;
 
     for (const r of rows) {
       const creatorId = (getVal(r, ['Creator*in-ID','Creator-in-ID','Creator ID','CreatorID','creator_id']) ?? '').toString().trim();
       if (!creatorId) continue;
       const handle = (getVal(r, ['Creator*innen-Anmeldename','Anmeldename','Handle','creator_handle']) ?? '').toString().trim();
-      const lastStream = getVal(r, ['Letzter Stream','letzter stream','Last Stream']);
+      const lastStreamRaw = getVal(r, ['Letzter Stream','letzter stream','Last Stream']);
       const agent = (getVal(r, ['Agent','Manager','Betreuer']) ?? '').toString().trim();
 
-      // Upsert minimal streamer record
-      const { data: exist } = await sb.from('streamer').select('creator_id, creator_handle').eq('creator_id', creatorId).maybeSingle();
+      // Parse last stream date/time
+      let last_stream_at: string | null = null;
+      if (lastStreamRaw) {
+        const d = new Date(String(lastStreamRaw));
+        if (!isNaN(d.getTime())) last_stream_at = d.toISOString();
+      }
+
+      // Upsert streamer
+      const { data: exist } = await sb.from('streamer').select('creator_id, creator_handle, last_stream_at, assigned_manager_id').eq('creator_id', creatorId).maybeSingle();
       if (!exist) {
-        await sb.from('streamer').insert({ creator_id: creatorId, creator_handle: handle || null });
-      } else if (!exist.creator_handle && handle) {
-        await sb.from('streamer').update({ creator_handle: handle }).eq('creator_id', creatorId);
+        await sb.from('streamer').insert({ creator_id: creatorId, creator_handle: handle || null, last_stream_at });
+      } else {
+        await sb.from('streamer').update({
+          creator_handle: exist.creator_handle || handle || exist.creator_handle,
+          last_stream_at: exist.last_stream_at || last_stream_at || exist.last_stream_at
+        }).eq('creator_id', creatorId);
       }
       streamerUpserts++;
-      // TODO:
-      // - lastStream persistieren: benötigt Spalte (z. B. streamer.last_stream_at)
-      // - agent -> assigned_manager_id Mapping (braucht Mapping-Tabelle Name->profile_id)
+
+      // Map agent alias to manager profile
+      if (agent) {
+        const { data: alias } = await sb.from('manager_aliases').select('manager_profile_id').eq('alias', agent).maybeSingle();
+        if (alias?.manager_profile_id) {
+          await sb.from('streamer').update({ assigned_manager_id: alias.manager_profile_id }).eq('creator_id', creatorId);
+          managerMatches++;
+        }
+      }
     }
 
-    return NextResponse.json({ ok: true, streamer_upserts: streamerUpserts });
+    return NextResponse.json({ ok: true, streamer_upserts: streamerUpserts, manager_matches: managerMatches });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
