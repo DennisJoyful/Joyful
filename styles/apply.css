@@ -1,0 +1,6 @@
+
+.apply-bg { background: linear-gradient(180deg, #000 0%, #111 100%); }
+.apply-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 1rem; backdrop-filter: blur(16px); }
+.apply-input { width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); padding:0.6rem 0.8rem; border-radius:0.8rem; }
+.apply-btn { background:#d6007d; padding:0.7rem 1rem; border-radius:0.8rem; font-weight:bold; }
+.apply-preview { display:flex; gap:1rem; align-items:center; background:rgba(255,255,255,0.1); padding:1rem; border-radius:0.8rem; }
