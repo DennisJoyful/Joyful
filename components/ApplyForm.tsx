@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 
 type ContactMethod = 'whatsapp' | 'discord';
@@ -41,16 +41,14 @@ export default function ApplyForm({ slug }: { slug: string }) {
     }
   }
 
-  function formatOk(): string | null {
+  function contactValidationMsg(): string | null {
     if (contactMethod === 'whatsapp') {
-      // very soft validation for intl numbers
       const ok = /^[+]?\d[\d\s()-]{6,}$/.test(contactValue.trim());
       return ok ? null : 'Bitte valide WhatsApp-Nummer angeben (mit Ländervorwahl, z. B. +49...)';
     }
     if (contactMethod === 'discord') {
-      // allow modern Discord usernames or legacy name#1234
       const v = contactValue.trim();
-      const ok = /^.{2,32}$/.test(v); // super soft; Discord has many formats now
+      const ok = /^.{2,32}$/.test(v);
       return ok ? null : 'Bitte gültigen Discord-User angeben.';
     }
     return null;
@@ -60,7 +58,7 @@ export default function ApplyForm({ slug }: { slug: string }) {
     e.preventDefault();
     setOk(''); setErr('');
 
-    const contactErr = formatOk();
+    const contactErr = contactValidationMsg();
     if (contactErr) { setErr(contactErr); return; }
     if (!consent) { setErr('Bitte der Datennutzung zustimmen.'); return; }
 
@@ -83,7 +81,6 @@ export default function ApplyForm({ slug }: { slug: string }) {
 
   return (
     <div className="relative">
-      {/* Branding Header */}
       <div className="flex items-center gap-3 justify-center">
         <Image src="/joyful-logo.png" alt="Joyful Agency" width={64} height={64} priority className="drop-shadow" />
         <div>
@@ -93,12 +90,10 @@ export default function ApplyForm({ slug }: { slug: string }) {
         </div>
       </div>
 
-      {/* Card */}
       <div className="mt-8 rounded-3xl border border-gray-200/70 bg-white/90 backdrop-blur shadow-xl p-6 md:p-10">
-        {/* USP Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
           <div className="rounded-2xl border p-3 text-center">✅ Kostenlose Beratung</div>
-          <div className="rounded-2xl border p-3 text-center">⚡ Antwort i. d. R. < 24h</div>
+          <div className="rounded-2xl border p-3 text-center">⚡ Antwort i. d. R. &lt; 24h</div>
           <div className="rounded-2xl border p-3 text-center">🛡️ Sichere Daten</div>
         </div>
 
@@ -155,7 +150,6 @@ export default function ApplyForm({ slug }: { slug: string }) {
         {err && <div className="mt-2 text-red-600 text-sm text-center">{err}</div>}
       </div>
 
-      {/* Footer trust row */}
       <div className="mt-6 text-center text-xs text-gray-400">
         © {new Date().getFullYear()} Joyful Agency • #teamjoyful
       </div>
